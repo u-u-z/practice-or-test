@@ -3,32 +3,32 @@
 # Please use Python3 run it.
 '''
 写一个程序 go_score_group(cards)，
-    cards是一组卡牌 格式是list 
-    每一个是一个两个元素的字符 比如 '3H' 就是红桃三 
-    程序需要返回一个整数得分 
-    
-    基于以下： 
-        
-        每张牌的得分就是它本身的数值 0，J，Q，K，A分别是10，11，12，13，20； 
-        
-        如果卡组是一套合理的‘N of a kind’(帘)， 
+    cards是一组卡牌 格式是list
+    每一个是一个两个元素的字符 比如 '3H' 就是红桃三
+    程序需要返回一个整数得分
+
+    基于以下：
+
+        每张牌的得分就是它本身的数值 0，J，Q，K，A分别是10，11，12，13，20；
+
+        如果卡组是一套合理的‘N of a kind’(帘)，
             即两张或以上相同非A数值， 那么得分就是它的数值乘以N的阶乘，
             如go_score_group(['4C', '4H', '4S']) 返回值为24；
-        
-        如果卡组是一套合理的‘run’（顺子）， 
-            即一套三张或以上牌数，最大值和最小值不能为A， 
-            根据数值形成一套连续的颜色不同（红黑红或黑红黑）的排序， 
-            其中， A可以做为顺子中的任意值， 但颜色固定， 
-            得分是每张牌所代表的值的和， 
-            A的值取决于它所代表的那张牌的值， 
-            这里参数cards的顺序不影响顺子的结果（['2C', '3D', '4S'] 和 ['4S', '2C', '3D']都是顺子）， 
+
+        如果卡组是一套合理的‘run’（顺子），
+            即一套三张或以上牌数，最大值和最小值不能为A，
+            根据数值形成一套连续的颜色不同（红黑红或黑红黑）的排序，
+            其中， A可以做为顺子中的任意值， 但颜色固定，
+            得分是每张牌所代表的值的和，
+            A的值取决于它所代表的那张牌的值，
+            这里参数cards的顺序不影响顺子的结果（['2C', '3D', '4S'] 和 ['4S', '2C', '3D']都是顺子），
             如
-                go_score_group(['2C', 'AD', 'AS','5D']) 返回值9， 
-                go_score_group(['2C', '3D', '4H']) 返回值-9； 
-                
-        如果这要卡组是单张牌或不符合帘和顺子的规则， 
-            那么得分即为每张牌数值和的相反数， 
-            A在这里值为20， 
+                go_score_group(['2C', 'AD', 'AS','5D']) 返回值9，
+                go_score_group(['2C', '3D', '4H']) 返回值-9；
+
+        如果这要卡组是单张牌或不符合帘和顺子的规则，
+            那么得分即为每张牌数值和的相反数，
+            A在这里值为20，
             如go_score_group(['4H', '0H', 'JC', '2H', '7H']) 返回值-34
 
 
@@ -92,34 +92,68 @@ def is_nofkind_and_get_score(cards_dict):
 
 
 def is_run_and_get_get_score(cards_dict):
-    i = 0
-    a_left_score  = 0 
-    a_right_score = 0
     
+    a_left_score = 0
+    a_right_score = 0
+
+    sorted_cards_dict = []
+    a_cards_dict = []
+    final_a_cards_dict = []
+
     for card in cards_dict:
         if card['card_score'] == 20:
-        # 在有 A 的情況下，強行將A替換成 無A狀態
-            if i == 0 or i == (len(cards_dict) - 1 ):
-                return 0
-            else: 
-                a_left_score = cards_dict[i-1]['card_score']
-                a_right_score = cards_dict[i+1]['card_score']
+            # 在有 A 的情況下，強行將A替換成 無A狀態
+            # if i == 0 or i == (len(cards_dict) - 1 ):
+            #    return 0
+            # else:
+            a_cards_dict.append(card)
+        else:
+            sorted_cards_dict.append(card)
 
-                if (a_right_score - a_left_score) == 2:
-                    cards_dict[i]['card_score'] = a_left_score + 1
-                elif a_right_score == 20:
-                    # A 的 下一個 也是 A 的情況下
-                    cards_dict[i]['card_score'] = a_left_score + 1
-                    cards_dict[i+1]['card_score'] = a_left_score + 2
-                else:
-                    return 0
+    sorted_cards_dict = sorted(sorted_cards_dict, key=lambda x: x['card_score'])
+
+    d_value = 0
+    i = 0
+    key_in_a_card_stack = 0
+    for card in sorted_cards_dict:
+
+        this_score = card['card_score']
+        if i < len(sorted_cards_dict) - 1:
+            next_score = sorted_cards_dict[i+1]['card_score']
+        else:
+            break
+
+        if (next_score - this_score) == 1:
+            ''
+            
+        elif (next_score - this_score - 1) <= len(a_cards_dict): #2AAA6A8
+            d_value = (next_score - this_score - 1)
+            j = 0
+            while (j < d_value):
+                
+                final_a_cards_dict.append({
+                    'card_score':card['card_score'] + 1 + j ,
+                    'card_color':a_cards_dict[key_in_a_card_stack]['card_color'],
+                    'card_str'  :'*'
+                })
+                j = j + 1
+                key_in_a_card_stack = key_in_a_card_stack + 1
+
+        elif (next_score - this_score - 1) > len(a_cards_dict):
+            return 0 
+        else:
+            return 0
+        
         i = i + 1
+
+    cards_dict = sorted(sorted_cards_dict + final_a_cards_dict, key=lambda x: x['card_score'])
     
-    # 在沒有 A 的情況下
+
+# 在沒有 A 的情況下
     score = 0
     n_tmp = cards_dict[0]['card_color']
     i = 0
-
+    '''
     for card in cards_dict:
         if i == 0:
             i = i + 1
@@ -129,12 +163,24 @@ def is_run_and_get_get_score(cards_dict):
             continue
         else:
             return 0
+    '''
+    
+    red_count = 0
+    black_count = 0
 
     new_cards_dict = sorted(cards_dict, key=lambda x: x['card_score'])
 
     i = 0
     m_tmp = new_cards_dict[0]['card_score']
+
     for card in new_cards_dict:
+
+        if card['card_color'] == 1:
+            red_count = red_count + 1
+        else: 
+            black_count = black_count + 1
+        
+
         score = score + card['card_score']
         if i == 0:
             i = i + 1
@@ -146,9 +192,11 @@ def is_run_and_get_get_score(cards_dict):
                 continue
             else:
                 return 0
-
-    return score
-
+    color_state = abs(red_count - black_count)
+    if color_state == 0 or color_state == 1:
+        return score
+    else: 
+        return 0
 
 def go_score_group(cards):
     score = 0
@@ -163,7 +211,7 @@ def go_score_group(cards):
         score = get_card_score(card) + score
     run_score = is_run_and_get_get_score(cards_dict)
     kind_score = is_nofkind_and_get_score(cards_dict)
-    if run_score > 0 :
+    if run_score > 0:
         return run_score
     elif kind_score > 0:
         return kind_score
@@ -172,8 +220,12 @@ def go_score_group(cards):
 
 
 def main():
-    print(go_score_group(['4C', '4H', '4S']))
+    print(go_score_group(['2D', 'AH', 'AC', '5S', 'AD', 'AS', '8H']))
     return 0
+    # 2R - AB - AR -  5B - AR - 8B
+    # C 梅花️ - 黑色 S 黑桃 - 黑色
+    #    D 方片 - 紅色
+    #    H 紅桃 - 紅色
 
 
 if __name__ == "__main__":
