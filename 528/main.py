@@ -92,6 +92,9 @@ def is_nofkind_and_get_score(cards_dict):
 
 
 def is_run_and_get_get_score(cards_dict):
+
+    if len(cards_dict<3):
+        return 0
     
     a_left_score = 0
     a_right_score = 0
